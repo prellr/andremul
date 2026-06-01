@@ -2,7 +2,7 @@ const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
 const $ = (id) => document.getElementById(id);
-let currentAvd = "Andremul_KDS";
+let currentAvd = "Andremul";
 
 // ---- mode switch ----
 $("mode-easy").onclick = () => switchMode("easy");

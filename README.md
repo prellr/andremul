@@ -35,6 +35,84 @@ binaries, no Electron.
 Andremul resolves SDK/JDK locations per-OS automatically (e.g.
 `~/Library/Android/sdk` on macOS, `%LOCALAPPDATA%\Android\Sdk` on Windows).
 
+## Setting up the Android SDK
+
+If you don't already have the SDK, you have three options.
+
+### Option A — Android Studio (easiest)
+Install [Android Studio](https://developer.android.com/studio); it bundles the
+command-line tools, a JDK, and an SDK at the conventional location. Then create an
+AVD in **Device Manager** (a landscape tablet image is ideal for kiosk use).
+
+### Option B — Let Claude do it
+Paste the prompt below into **Claude Code** (it needs shell access). It detects
+your OS/CPU, installs a JDK + the command-line tools, downloads the right SDK
+packages, creates an AVD, installs scrcpy, and verifies a boot:
+
+```text
+Set up everything needed to run Andremul (https://github.com/prellr/andremul) on this machine.
+
+1. Detect my OS and CPU architecture (arm64 vs x86_64).
+2. Ensure a JDK 17+ is available. Use the system JDK if present; otherwise install
+   Temurin 17 (Homebrew/winget/apt, or a no-sudo tarball into ~/.andremul/jdk). Export JAVA_HOME.
+3. Install the Android SDK "command line tools only" (latest, from
+   https://developer.android.com/studio#command-tools) into the conventional SDK root:
+     - macOS:   ~/Library/Android/sdk
+     - Windows: %LOCALAPPDATA%\Android\Sdk
+     - Linux:   ~/Android/Sdk
+   Unzip so sdkmanager ends up at <SDK>/cmdline-tools/latest/bin/.
+4. With sdkmanager (accept all licenses non-interactively), install:
+   platform-tools, emulator, platforms;android-34, and the Play Store system image
+   matching my CPU:
+     - arm64:  system-images;android-34;google_apis_playstore;arm64-v8a
+     - x86_64: system-images;android-34;google_apis_playstore;x86_64
+5. Create a landscape tablet AVD named "Andremul":
+   avdmanager create avd -n Andremul -k "<that system image>" --device "10.1in WXGA (Tablet)"
+   Then set hw.initialOrientation=landscape and disable the lock screen in its config.ini.
+6. Install scrcpy for the real-time display (brew/winget/apt).
+7. Set ANDROID_SDK_ROOT and add platform-tools + emulator to my PATH (persist in my shell profile).
+8. Verify: print `adb version` and `emulator -list-avds`, then boot the AVD headless,
+   poll until sys.boot_completed=1, and shut it down. Report what you installed and any manual steps left.
+```
+
+### Option C — Command-line tools by hand
+
+**macOS / Linux**
+```sh
+SDK="$HOME/Library/Android/sdk"      # Linux: $HOME/Android/Sdk
+mkdir -p "$SDK/cmdline-tools"
+# Download "command line tools only" (mac/linux) from the link above, then:
+unzip commandlinetools-*.zip -d "$SDK/cmdline-tools"
+mv "$SDK/cmdline-tools/cmdline-tools" "$SDK/cmdline-tools/latest"
+SM="$SDK/cmdline-tools/latest/bin/sdkmanager"
+yes | "$SM" --licenses
+ABI=arm64-v8a   # use x86_64 on Intel Macs / Linux x86
+"$SM" "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis_playstore;$ABI"
+"$SDK/cmdline-tools/latest/bin/avdmanager" create avd -n Andremul \
+  -k "system-images;android-34;google_apis_playstore;$ABI" --device "10.1in WXGA (Tablet)"
+export ANDROID_SDK_ROOT="$SDK"; export PATH="$SDK/platform-tools:$SDK/emulator:$PATH"
+```
+
+**Windows (PowerShell)** — requires JDK 17 (set `JAVA_HOME`) and the *Windows
+Hypervisor Platform* feature enabled for acceleration:
+```powershell
+$SDK = "$env:LOCALAPPDATA\Android\Sdk"
+New-Item -ItemType Directory -Force "$SDK\cmdline-tools" | Out-Null
+# Download "command line tools only" (windows) from the link above, then:
+Expand-Archive commandlinetools-win-*.zip "$SDK\cmdline-tools"
+Rename-Item "$SDK\cmdline-tools\cmdline-tools" latest
+$SM = "$SDK\cmdline-tools\latest\bin\sdkmanager.bat"
+& $SM --licenses                       # accept each prompt
+& $SM "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis_playstore;x86_64"
+& "$SDK\cmdline-tools\latest\bin\avdmanager.bat" create avd -n Andremul `
+  -k "system-images;android-34;google_apis_playstore;x86_64" --device "10.1in WXGA (Tablet)"
+setx ANDROID_SDK_ROOT "$SDK"
+```
+
+> **ABI matters:** use `arm64-v8a` on Apple Silicon / Windows-on-ARM, `x86_64` on
+> Intel/AMD. ARM-only apps on an x86_64 image rely on the emulator's ARM
+> translation, which may or may not work — test your specific app.
+
 ## Run from source
 Requires [Rust](https://rustup.rs). Node is **not** needed (static frontend).
 
