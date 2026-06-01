@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Andremul</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Left: controls -->
+    <section class="panel left">
+      <div class="modes">
+        <button id="mode-easy" class="seg active">Easy</button>
+        <button id="mode-adv" class="seg">Advanced</button>
+      </div>
+
+      <!-- Easy view -->
+      <div id="easy" class="view">
+        <div class="status">
+          <div id="status-icon" class="status-icon stopped">■</div>
+          <div id="status-label" class="status-label">Stopped</div>
+          <div id="status-sub" class="status-sub"></div>
+        </div>
+        <button id="btn-start" class="big green">▶ Start</button>
+        <button id="btn-stop" class="big red hidden">■ Stop</button>
+        <p id="setup-hint" class="hint hidden">
+          First-time setup needed — install the Android SDK &amp; create an AVD
+          before starting.
+        </p>
+      </div>
+
+      <!-- Advanced view -->
+      <div id="advanced" class="view hidden">
+        <h3>Environment <span id="os-badge" class="badge"></span></h3>
+        <ul id="env" class="checks"></ul>
+
+        <h3>Virtual Devices</h3>
+        <div id="avds" class="muted">—</div>
+
+        <h3>Auto-launch app on boot <span class="muted" style="font-weight:400">(optional)</span></h3>
+        <div class="row">
+          <input id="pkg" type="text" placeholder="com.example.app" list="pkg-list" />
+          <button id="btn-detect">Detect installed</button>
+        </div>
+        <datalist id="pkg-list"></datalist>
+        <p class="muted small">Leave blank to just boot the device. Set a package id to
+          auto-launch a kiosk app (e.g. a POS/KDS client) on every start.</p>
+
+        <div class="row">
+          <button id="btn-rescan">Re-scan</button>
+          <button id="btn-start-adv">Start</button>
+          <button id="btn-stop-adv">Stop</button>
+          <button id="btn-launch">Launch app</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: log -->
+    <section class="panel right">
+      <h3>Log</h3>
+      <div id="log" class="log"></div>
+    </section>
+  </div>
+  <script src="main.js"></script>
+</body>
+</html>

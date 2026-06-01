@@ -1,0 +1,18 @@
+[package]
+name = "andremul"
+version = "1.0.0"
+edition = "2021"
+description = "Andremul — Square KDS host (cross-platform)"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "5"
+
+[[bin]]
+name = "andremul"
+path = "src/main.rs"

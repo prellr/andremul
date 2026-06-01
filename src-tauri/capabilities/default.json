@@ -1,0 +1,11 @@
+{
+  "identifier": "default",
+  "description": "Capability for the Andremul main window: core IPC + events.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:window:default",
+    "core:app:default"
+  ]
+}
