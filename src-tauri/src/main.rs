@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod adb;
+mod bootstrap;
 mod emulator;
 mod proc;
 mod scrcpy;
@@ -196,6 +197,11 @@ fn launch_app(app: AppHandle, state: State<SharedCore>) {
 }
 
 #[tauri::command]
+fn setup_android(app: AppHandle) {
+    std::thread::spawn(move || bootstrap::run_setup(app));
+}
+
+#[tauri::command]
 fn detect_running(app: AppHandle, state: State<SharedCore>) {
     let s = sdk::AndroidSdk::resolve();
     if let Some(serial) = adb::online_emulator(&s) {
@@ -209,6 +215,12 @@ fn detect_running(app: AppHandle, state: State<SharedCore>) {
 }
 
 fn main() {
+    // Headless bootstrap test: download JDK/cmdline-tools into the SDK root and exit.
+    if std::env::args().any(|a| a == "--bootstrap-test") {
+        bootstrap::cli_test();
+        std::process::exit(0);
+    }
+
     // Headless self-test: print the cross-platform environment detection and exit.
     if std::env::args().any(|a| a == "--selftest") {
         let info = detect_environment();
@@ -226,6 +238,7 @@ fn main() {
             set_target_package,
             list_packages,
             launch_app,
+            setup_android,
             detect_running
         ])
         .run(tauri::generate_context!())

@@ -37,9 +37,17 @@ Andremul resolves SDK/JDK locations per-OS automatically (e.g.
 
 ## Setting up the Android SDK
 
-If you don't already have the SDK, you have three options.
+If you don't already have the SDK, you have several options — the first is built in.
 
-### Option A — Android Studio (easiest)
+### Option 0 — In-app "Set up Android" (recommended)
+On first launch, if the SDK isn't found, Andremul shows a **Set up Android** button.
+Click it and the app downloads a JDK (Temurin) + Google's command-line tools,
+installs platform-tools, the emulator, and a system image via `sdkmanager`
+(prompting you to accept Google's licenses), and creates an AVD — with progress in
+the log. No terminal required. Nothing is redistributed; everything is fetched from
+official sources at your request.
+
+### Option A — Android Studio (easiest GUI)
 Install [Android Studio](https://developer.android.com/studio); it bundles the
 command-line tools, a JDK, and an SDK at the conventional location. Then create an
 AVD in **Device Manager** (a landscape tablet image is ideal for kiosk use).

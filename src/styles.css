@@ -39,6 +39,7 @@ body {
 .big { display: block; width: 100%; border: 0; border-radius: 10px; padding: 14px; font-size: 16px; font-weight: 700; color: white; cursor: pointer; margin-top: 12px; }
 .big.green { background: var(--green); }
 .big.red { background: var(--red); }
+.big.blue { background: var(--blue); }
 .big:disabled { opacity: .5; cursor: default; }
 
 .hint { color: #ff9f0a; text-align: center; margin-top: 16px; }

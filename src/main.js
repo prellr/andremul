@@ -60,7 +60,28 @@ async function refresh() {
   $("avds").textContent = env.avds && env.avds.length ? env.avds.join(", ") : "none";
   $("setup-hint").classList.toggle("hidden", env.ready);
   $("btn-start").disabled = !env.ready;
+  // Show the setup button only until the environment is ready.
+  $("btn-setup").classList.toggle("hidden", env.ready);
 }
+
+// ---- Android setup (first-run bootstrap) ----
+let setupRunning = false;
+async function runSetup() {
+  if (setupRunning) return;
+  await invoke("setup_android");
+}
+$("btn-setup").onclick = runSetup;
+$("btn-setup-adv").onclick = runSetup;
+listen("setup", (e) => {
+  const s = e.payload;
+  setupRunning = s === "running";
+  for (const id of ["btn-setup", "btn-setup-adv"]) {
+    $(id).disabled = setupRunning;
+    $(id).textContent = setupRunning ? "Setting up… (downloading)" :
+      (id === "btn-setup" ? "⬇ Set up Android" : "Set up Android (download & install SDK)");
+  }
+  if (s === "done") refresh();
+});
 
 // ---- target package ----
 async function setPackage(pkg) {

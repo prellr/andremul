@@ -10,6 +10,14 @@ pub struct Output {
     pub ok: bool,
 }
 
+impl Output {
+    /// stderr if present, else stdout — handy for error messages.
+    pub fn combined(&self) -> String {
+        let e = self.stderr.trim();
+        if e.is_empty() { self.stdout.trim().to_string() } else { e.to_string() }
+    }
+}
+
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
@@ -42,6 +50,38 @@ pub fn run(program: &Path, args: &[&str], envs: &[(String, String)]) -> Output {
             stderr: e.to_string(),
             ok: false,
         },
+    }
+}
+
+/// Run a command, feeding `input` to its stdin (e.g. accepting sdkmanager
+/// licenses with a stream of "y", or answering avdmanager prompts with "no").
+pub fn run_with_input(program: &Path, args: &[&str], envs: &[(String, String)], input: &str) -> Output {
+    use std::io::Write;
+    let mut cmd = Command::new(program);
+    cmd.args(args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    configure(&mut cmd, envs);
+    let mut child = match cmd.spawn() {
+        Ok(c) => c,
+        Err(e) => return Output { code: -1, stdout: String::new(), stderr: e.to_string(), ok: false },
+    };
+    if let Some(mut stdin) = child.stdin.take() {
+        let owned = input.to_string();
+        // Write on a thread so a full stdout pipe can't deadlock us.
+        std::thread::spawn(move || {
+            let _ = stdin.write_all(owned.as_bytes());
+        });
+    }
+    match child.wait_with_output() {
+        Ok(o) => Output {
+            code: o.status.code().unwrap_or(-1),
+            stdout: String::from_utf8_lossy(&o.stdout).to_string(),
+            stderr: String::from_utf8_lossy(&o.stderr).to_string(),
+            ok: o.status.success(),
+        },
+        Err(e) => Output { code: -1, stdout: String::new(), stderr: e.to_string(), ok: false },
     }
 }
 
