@@ -123,12 +123,21 @@ cargo run -- --selftest   # print detected environment and exit
 ```
 
 ## Download / install
-- **Windows**: built automatically by CI. Go to the **Actions** tab → latest
-  "Build Windows" run → download the `andremul-windows-installers` artifact, or
-  grab the installer from a tagged **Release**. Recipients need the WebView2
-  runtime (preinstalled on Windows 10/11) and scrcpy for the display.
-- **macOS**: `./scripts/package-mac.sh` builds a signed/notarized `.app` (set
-  `DEV_ID` + `NOTARY_PROFILE` to notarize; otherwise it's ad-hoc signed).
+GitHub Actions builds installers for **Windows, macOS, and Linux** on every
+version tag (and on manual dispatch). Grab them from the latest **Release**, or
+from a run's artifacts under the **Actions** tab:
+
+- **Windows** — `*-setup.exe` (NSIS). Needs the WebView2 runtime (preinstalled on
+  Win 10/11).
+- **macOS** — `.dmg` / `.app` (Apple Silicon). CI builds are **unsigned** —
+  right-click → Open the first time, or run `xattr -dr com.apple.quarantine
+  Andremul.app`. For a **notarized** build, run `./scripts/package-mac.sh` locally
+  with `DEV_ID` + `NOTARY_PROFILE` set.
+- **Linux** — `.deb`, `.rpm`, and `.AppImage`. Needs a WebKitGTK runtime
+  (`libwebkit2gtk-4.1`).
+
+All platforms also need the **Android SDK** set up (see above) and **scrcpy** for
+the real-time display.
 
 ## Usage
 1. **Advanced → Environment** should show green checks (SDK, adb, emulator,
