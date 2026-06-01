@@ -5,6 +5,10 @@ on:
   push:
     tags: ["v*"]
 
+# Needed so the release step can create a GitHub Release on tag builds.
+permissions:
+  contents: write
+
 jobs:
   windows:
     runs-on: windows-latest
