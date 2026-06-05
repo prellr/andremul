@@ -219,18 +219,25 @@ fn tweak_avd_config(name: &str) {
     let cfg = dirs::home_dir()
         .unwrap_or_default()
         .join(format!(".android/avd/{name}.avd/config.ini"));
-    if let Ok(mut s) = fs::read_to_string(&cfg) {
-        for (k, v) in [
-            ("hw.initialOrientation", "landscape"),
-            ("showDeviceFrame", "no"),
-            ("hw.keyboard", "yes"),
-        ] {
-            if !s.contains(&format!("{k}=")) {
-                s.push_str(&format!("\n{k}={v}"));
-            }
+    let Ok(orig) = fs::read_to_string(&cfg) else { return };
+    // Upsert: replace an existing key (e.g. the device profile's default RAM) or
+    // append it if absent.
+    let settings = [
+        ("hw.initialOrientation", "landscape"),
+        ("showDeviceFrame", "no"),
+        ("hw.keyboard", "yes"),
+        ("hw.ramSize", "2048"), // 2 GB default — lighter footprint
+    ];
+    let mut lines: Vec<String> = orig.lines().map(str::to_string).collect();
+    for (k, v) in settings {
+        let prefix = format!("{k}=");
+        if let Some(line) = lines.iter_mut().find(|l| l.starts_with(&prefix)) {
+            *line = format!("{k}={v}");
+        } else {
+            lines.push(format!("{k}={v}"));
         }
-        let _ = fs::write(&cfg, s);
     }
+    let _ = fs::write(&cfg, lines.join("\n") + "\n");
 }
 
 fn create_avd(app: Option<&AppHandle>, sdk: &AndroidSdk) -> Result<(), String> {
