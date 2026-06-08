@@ -1,8 +1,8 @@
 [package]
 name = "andremul"
-version = "1.1.0"
+version = "1.1.1"
 edition = "2021"
-description = "Andremul — Square KDS host (cross-platform)"
+description = "Andremul — run Android apps on your desktop (cross-platform)"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

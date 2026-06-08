@@ -11,7 +11,7 @@ source "$HOME/.cargo/env" 2>/dev/null || true
 APP_NAME="Andremul"
 BIN_NAME="andremul"
 BUNDLE_ID="com.vinesandrushes.andremul"
-VERSION="1.1.0"
+VERSION="1.1.1"
 
 echo "==> Release build"
 ( cd src-tauri && cargo build --release )
