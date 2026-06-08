@@ -241,6 +241,38 @@ fn main() {
             setup_android,
             detect_running
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Andremul");
+        // Stop the emulator + scrcpy when the window is closed.
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                let app = window.app_handle();
+                cleanup(&app);
+                app.exit(0); // closing the window fully quits the app
+            }
+        })
+        .build(tauri::generate_context!())
+        .expect("error while building Andremul")
+        // …and on app quit (Cmd+Q / last window), as a backstop.
+        .run(|app, event| {
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                cleanup(app);
+            }
+        });
+}
+
+/// Shut down the emulator and scrcpy that Andremul started (or adopted), so they
+/// don't linger after the app is closed. Idempotent.
+fn cleanup(app: &AppHandle) {
+    let sdk = sdk::AndroidSdk::resolve();
+    let (serial, scrcpy_child, emu_child) = {
+        let state = app.state::<SharedCore>();
+        let mut core = state.lock().unwrap();
+        (core.serial.clone(), core.scrcpy_child.take(), core.child.take())
+    };
+    if let Some(mut c) = scrcpy_child {
+        let _ = c.kill();
+    }
+    adb::kill_emulator(&sdk, &serial); // graceful: works for spawned or adopted
+    if let Some(mut c) = emu_child {
+        let _ = c.kill(); // hard fallback
+    }
 }
